@@ -1,0 +1,82 @@
+import HeatEquationDemo from "@/components/HeatEquationDemo";
+
+export const metadata = {
+  title: "The 1D heat equation — PDE Playground",
+};
+
+<div className="max-w-3xl mx-auto px-6 py-12 prose">
+
+# The 1D heat equation
+
+The **heat equation** describes how temperature spreads through a thin rod
+over time. In one spatial dimension it reads
+
+$$
+\frac{\partial u}{\partial t} = \alpha \, \frac{\partial^2 u}{\partial x^2},
+\qquad x \in [0, L], \quad t > 0,
+$$
+
+where $u(x, t)$ is the temperature and $\alpha > 0$ is the thermal
+diffusivity. We pair the equation with an initial condition $u(x, 0) = f(x)$
+and (for this chapter) homogeneous Dirichlet boundary conditions
+$u(0, t) = u(L, t) = 0$.
+
+## Intuition
+
+The right-hand side, $\partial^2 u / \partial x^2$, is the curvature of the
+temperature profile. Where the profile bulges upward, it gets pulled down;
+where it dips, it gets pushed up. The bigger $\alpha$ is, the faster that
+levelling-out happens.
+
+## Analytical solution by separation of variables
+
+Assume $u(x, t) = X(x) \, T(t)$. Substituting and dividing,
+
+$$
+\frac{T'(t)}{\alpha \, T(t)} = \frac{X''(x)}{X(x)} = -\lambda.
+$$
+
+The boundary conditions force $X(x) = \sin(n \pi x / L)$ with eigenvalues
+$\lambda_n = (n \pi / L)^2$, and then $T_n(t) = e^{-\alpha \lambda_n t}$.
+The general solution is
+
+$$
+u(x, t) = \sum_{n=1}^{\infty} b_n \sin\!\left(\tfrac{n \pi x}{L}\right) e^{-\alpha (n \pi / L)^2 t},
+$$
+
+where the $b_n$ are the Fourier sine coefficients of $f(x)$.
+
+## Numerical solution: explicit FTCS
+
+Discretize $x_i = i \Delta x$ and $t_n = n \Delta t$ and approximate the
+derivatives with finite differences. The forward-time, centred-space (FTCS)
+scheme is
+
+$$
+u_i^{n+1} = u_i^n + r \left( u_{i+1}^n - 2 u_i^n + u_{i-1}^n \right),
+\qquad r = \frac{\alpha \, \Delta t}{\Delta x^2}.
+$$
+
+This explicit scheme is **stable only when $r \leq 1/2$** &mdash; pick
+$\Delta t$ too large and the solution blows up.
+
+## Try it
+
+Drag the sliders. The left plot shows $u(x, t)$ as a heatmap (time on the
+vertical axis); the right plot shows snapshots of the temperature profile at
+four moments. Watch the stability ratio $r$ at the bottom &mdash; if you push
+$\alpha$ or the grid hard enough, the solver will warn you.
+
+<HeatEquationDemo />
+
+## Exercises
+
+1. Show that for $f(x) = \sin(\pi x / L)$ the analytical solution is
+   $u(x, t) = \sin(\pi x / L) \, e^{-\alpha (\pi / L)^2 t}$. How fast does it
+   decay if $\alpha = 0.01$ and $L = 1$?
+2. Modify the FTCS scheme to use Neumann boundary conditions
+   $\partial u / \partial x = 0$ at both ends. What changes physically?
+3. Implement the **Crank&ndash;Nicolson** scheme and confirm it remains stable
+   even when $r > 1/2$.
+
+</div>
